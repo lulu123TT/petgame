@@ -29,50 +29,66 @@ cc.Class({
         physical: cc.Label,
         mood: cc.Label,
         button: cc.Node,
+        anim: cc.Animation,
+        gold: cc.Label,
+    },
+
+
+    goldChange() {
+        var price
+        price.getComponent("shopMenu").game = this
     },
 
     btn_callback(sender, infm) {
+        //gold count
+        this.goldAdd()
+            //animation
+        var anim = this.pet.getComponent(cc.Animation);
         if (infm === "eat") {
-            var anim = this.pet.getComponent(cc.Animation);
             anim.play('animEat')
             this.button.active = false
-            anim.on('finished', this.animBeing(), this)
+            anim.on('finished', (msg) => {
+                this.button.active = true;
+            }, this)
             this.physicalValueAdd()
         } else if (infm === "drink") {
-            var anim = this.pet.getComponent(cc.Animation);
             anim.play('animDrink')
             this.physicalValueAdd()
         } else if (infm === "shower") {
-            var anim = this.pet.getComponent(cc.Animation);
             anim.play('animWash')
             this.cleanValueAdd()
         } else if (infm === "study") {
-            var anim = this.pet.getComponent(cc.Animation);
             anim.play('animStudy')
             this.moodvalueAdd()
             this.physicalValueSub()
         } else if (infm === "work") {
-            var anim = this.pet.getComponent(cc.Animation);
             anim.play('animWorking')
             this.moodvalueAdd()
             this.physicalValueSub()
         } else if (infm === "goToWork") {
-            var anim = this.pet.getComponent(cc.Animation);
             anim.play('animGoToWork')
             this.moodvalueAdd()
             this.physicalValueSub()
         }
     },
 
-    animBeing() {
-        this.button.active = true;
-    },
+    // animBeing() {
+    //     anim.on('finished', (msg) => {
+    //         this.button.active = true;
+    //     }, this)
+    // },
     // LIFE-CYCLE CALLBACKS:
 
     onLoad() {
         this.moodValue = 0
         this.cleanValue = 0
         this.physicalValue = 0
+        this.goldValue = 0
+    },
+
+    goldAdd() {
+        this.goldValue += 10;
+        this.gold.string = this.goldValue;
     },
 
     //mood value count
