@@ -1,6 +1,6 @@
 {
   "ver": "2.3.5",
-  "uuid": "02fb13e2-a57d-4ed9-b765-94b844e51dc1",
+  "uuid": "d3905d0b-588d-4a69-b283-8b9c99a3202a",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -11,10 +11,10 @@
   "height": 213,
   "platformSettings": {},
   "subMetas": {
-    "可乐": {
+    "strawberryCookie": {
       "ver": "1.0.4",
-      "uuid": "37ea326e-d72d-40f7-8760-9e18b10954e7",
-      "rawTextureUuid": "02fb13e2-a57d-4ed9-b765-94b844e51dc1",
+      "uuid": "0331f787-5a25-4e8d-9892-b52e67fa4b5e",
+      "rawTextureUuid": "d3905d0b-588d-4a69-b283-8b9c99a3202a",
       "trimType": "auto",
       "trimThreshold": 1,
       "rotated": false,

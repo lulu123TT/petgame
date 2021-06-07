@@ -25,6 +25,7 @@ cc.Class({
         //     }
         // },
 
+        //menu panel 
         shopBtn: cc.Node,
         cross: cc.Sprite,
         petTypeBtn: cc.Node,
@@ -33,46 +34,56 @@ cc.Class({
         pet: cc.Node,
         dish: cc.Node,
         set: cc.Node,
+
+        //pet property panel
+        petPropertyPanel: cc.Node,
+
     },
 
-    // LIFE-CYCLE CALLBACKS:
-    shopping(sender, inform) {
-        if (inform === "keji") {
-            this.game.goldValue -= 10;
-            this.game.gold.string = this.game.goldValue;
-        }
-    },
+    // // LIFE-CYCLE CALLBACKS:
 
 
-    shopBtn_callback(sender, infm) {
+    //shop menu and cross button 
+    btn_callback(sender, infm) {
         if (infm === "shop") {
             this.shopBtn.active = true
-        } else if (infm === "cross") {
+        } else if (infm === "shopCross") {
             this.shopBtn.active = false
         } else if (infm === "petTypeBtn") {
-            this.petTypeBtn.y = 385
-            this.dishTypeBtn.y = 407
-            this.setTypeBtn.y = 407
-            this.pet.active = true
-            this.set.active = false
-            this.dish.active = false
+            this.change(0)
         } else if (infm === "dishTypeBtn") {
-            this.petTypeBtn.y = 407
-            this.dishTypeBtn.y = 385
-            this.setTypeBtn.y = 407
-            this.pet.active = false
-            this.set.active = false
-            this.dish.active = true
+            this.change(2)
         } else if (infm === "setTypeBtn") {
-            this.petTypeBtn.y = 407
-            this.dishTypeBtn.y = 407
-            this.setTypeBtn.y = 385
-            this.pet.active = false
-            this.set.active = true
-            this.dish.active = false
+            this.change(1)
         }
     },
-    // onLoad () {},
+
+    //menu panel显现 btn 位置改变
+    change(num) {
+        for (let i = 0; i < 3; i++) {
+            if (num === i) {
+                this.panel[i].active = true
+                this.btn[i].y = 385
+            } else {
+                this.panel[i].active = false
+                this.btn[i].y = 407
+            }
+        }
+    },
+
+
+    onLoad() {
+        window.shopMenu = this
+        this.panel = [this.pet, this.set, this.dish]
+        this.btn = [this.petTypeBtn, this.setTypeBtn, this.dishTypeBtn]
+
+        const GOODS = [{
+            name: 'icecream',
+            intro: 'icecream',
+            picUrl: 'game/menu/icecream',
+        }]
+
+    },
 
     start() {
 

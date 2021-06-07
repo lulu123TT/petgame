@@ -1,6 +1,6 @@
 {
   "ver": "2.3.5",
-  "uuid": "48f6743d-4ade-4a25-b34f-abcd589668c2",
+  "uuid": "02fb13e2-a57d-4ed9-b765-94b844e51dc1",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -11,10 +11,10 @@
   "height": 213,
   "platformSettings": {},
   "subMetas": {
-    "小熊饼干": {
+    "coka": {
       "ver": "1.0.4",
-      "uuid": "a80971b5-e855-465d-98f9-73a3d0e4df30",
-      "rawTextureUuid": "48f6743d-4ade-4a25-b34f-abcd589668c2",
+      "uuid": "37ea326e-d72d-40f7-8760-9e18b10954e7",
+      "rawTextureUuid": "02fb13e2-a57d-4ed9-b765-94b844e51dc1",
       "trimType": "auto",
       "trimThreshold": 1,
       "rotated": false,
