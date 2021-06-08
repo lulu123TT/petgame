@@ -939,16 +939,16 @@
       "__uuid__": "3b8f642c-8127-4bc0-814d-ac5f6f4b7eac"
     },
     "_N$pressedSprite": {
-      "__uuid__": "e9ec654c-97a2-4787-9325-e6a10375219a"
+      "__uuid__": "3b8f642c-8127-4bc0-814d-ac5f6f4b7eac"
     },
     "pressedSprite": {
-      "__uuid__": "e9ec654c-97a2-4787-9325-e6a10375219a"
+      "__uuid__": "3b8f642c-8127-4bc0-814d-ac5f6f4b7eac"
     },
     "_N$hoverSprite": {
-      "__uuid__": "f0048c10-f03e-4c97-b9d3-3506e1d58952"
+      "__uuid__": "3b8f642c-8127-4bc0-814d-ac5f6f4b7eac"
     },
     "hoverSprite": {
-      "__uuid__": "f0048c10-f03e-4c97-b9d3-3506e1d58952"
+      "__uuid__": "3b8f642c-8127-4bc0-814d-ac5f6f4b7eac"
     },
     "_N$disabledSprite": {
       "__uuid__": "29158224-f8dd-4661-a796-1ffab537140e"
@@ -4130,7 +4130,7 @@
         "__id__": 101
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [],
     "_prefab": null,
     "_opacity": 255,
@@ -8317,7 +8317,7 @@
     "goodPanel": {
       "__id__": 88
     },
-    "myGood": {
+    "myGoods": {
       "__uuid__": "aad3af75-1631-4ed5-9135-651610942d60"
     },
     "_id": "d4KkvHV5JESaJYjVO67/t6"

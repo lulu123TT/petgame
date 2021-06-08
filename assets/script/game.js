@@ -33,20 +33,27 @@ cc.Class({
 
         //mybag 预制资源
         goodPanel: cc.Node,
-        myGood: cc.Prefab,
+        myGoods: cc.Prefab,
     },
 
-    //背包资源预制
-    // spawnGoods() {
-    //     this.goodsArray = []
-    //     for (var i = 0; i < 1; i++) {
-    //         let good = cc.instantiate(this.myGoods)
-    //         good.getComponent('myGoods').initInfo(shopMenu.GOODS[i])
-    //         this.goodsArray.push(good)
-    //         this.goodPanel.addChild(good)
-    //         console.log(shopMenu.GOODS.length)
-    //     }
-    // },
+    //背包资源预制s
+    spawnGoods() {
+        // this.goodsArray = []
+        // for (var i = 0; i < 1; i++) {
+        var good = cc.instantiate(this.myGoods)
+        good.getComponent('myGoods').initInfo('icecream')
+            // cc.resources.load('./icecream', cc.SpriteFrame, (err, spriteFrame) => {
+            //     good.spriteFrame = spriteFrame;
+            //     spriteFrame.addRef();
+            // });
+            // this.goodsArray.push(good)
+        cc.log(good.parent)
+        this.goodPanel.addChild(good)
+        cc.log(good.parent)
+        good.setPosition(cc.v2(0, 0))
+        console.log('spawn success')
+            // }
+    },
 
     //bag btn
     bagBtn() {
@@ -54,8 +61,7 @@ cc.Class({
             this.goodPanel.parent.active = false
         } else {
             this.goodPanel.parent.active = true
-                // this.spawnGoods()
-                // console.log('spawn success')
+            this.spawnGoods()
         }
     },
 

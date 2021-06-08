@@ -80,7 +80,7 @@ cc.Class({
         const GOODS = [{
             name: 'icecream',
             intro: 'icecream',
-            picUrl: 'game/menu/icecream',
+            picUrl: './icecream',
         }]
 
     },
