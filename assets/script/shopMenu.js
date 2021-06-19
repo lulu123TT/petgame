@@ -38,9 +38,61 @@ cc.Class({
         //pet property panel
         petPropertyPanel: cc.Node,
 
+        goldWarning: cc.Node, //gold not enough warning
+        eatFoodWarning: cc.Node, //只能选择一种食物
     },
 
     // // LIFE-CYCLE CALLBACKS:
+    shopping(sender, inform) {
+        //buy keji
+        if (inform === "keji") {
+            if (game.goldValue - 100 < 0) {
+                console.log("value not enough")
+                this.showGoldWarningDialog("gold")
+            } else {
+                game.goldValue -= 100
+                game.gold.string = game.goldValue
+            }
+        }
+
+        //buy icecream
+        for (let i = 0; i < 4; i++) {
+            if (inform === this.goodName[i]) {
+                cc.log(inform)
+                if (game.goldValue - this.goodValue[i] < 0) {
+                    console.log("value not enough")
+                    this.showGoldWarningDialog("gold")
+                } else {
+                    game.goldValue -= this.goodValue[i]
+                    game.gold.string = game.goldValue
+                    game.spawnGoods(this.goodName[i])
+                    game.saveGold() //更改金币记录
+                }
+                break
+            }
+        }
+    },
+
+
+
+    //gold warning
+    showGoldWarningDialog(str) {
+        if (str === "gold") {
+            this.goldWarning.active = true
+        } else if (str === "eatFood") {
+            this.eatFoodWarning.active = true
+            cc.log("malimali")
+        }
+    },
+
+    hideGoldWarningDialog(str) {
+        this.goldWarning.active = false
+    },
+
+    hideFoodWarningDialog() {
+        this.eatFoodWarning.active = false
+    },
+
 
 
     //shop menu and cross button 
@@ -74,14 +126,19 @@ cc.Class({
 
     onLoad() {
         window.shopMenu = this
+
         this.panel = [this.pet, this.set, this.dish]
         this.btn = [this.petTypeBtn, this.setTypeBtn, this.dishTypeBtn]
+        this.goodName = ["icecream", "coka", "bearCookies", "strawberryCookie"]
+        this.goodValue = [5, 4, 15, 10]
+            // console.log(this.goodValue[1])
 
-        const GOODS = [{
-            name: 'icecream',
-            intro: 'icecream',
-            picUrl: './icecream',
-        }]
+        // this.GOODS = [{
+        //     icecream: {
+        //         intro: 'icecream',
+        //         picUrl: './icecream',
+        //     }
+        // }]
 
     },
 

@@ -23,61 +23,99 @@ cc.Class({
         //     set (value) {
         //         this._bar = value;
         //     }
+        // myicecream: cc.Sprite,
+        spa_food: cc.SpriteAtlas,
+
+        pet: cc.Node,
+
+        eatfood: cc.Prefab,
         // },
-        goldWarning: cc.Node,
     },
+
+
+
 
     // LIFE-CYCLE CALLBACKS:
+    selectGood(sender, info) {
+        if (info === "icecream") {
+            this.food = this.pet.getChlidByName("food")
+                // cc.log(this.ice)
+            this.ice.getComponent(cc.Sprite).spriteFrame = this.spa_food.getSpriteFrame('kele')
 
-    shopping(sender, inform) {
-
-        //buy keji
-        if (inform === "keji") {
-            if (game.goldValue - 100 < 0) {
-                console.log("value not enough")
-                this.showGoldWarningDialog()
-            } else {
-                game.goldValue -= 100
-                game.gold.string = game.goldValue
-            }
-        }
-
-        //buy icecream
-        if (inform === "icecream") {
-            if (game.goldValue - 5 < 0) {
-                console.log("value not enough")
-                this.showGoldWarningDialog()
-            } else {
-                game.goldValue -= 5
-                game.gold.string = game.goldValue
-                this.initInfo('icecream')
-            }
+            // cc.log("success")
         }
     },
 
-    //gold warning
-    showGoldWarningDialog() {
-        this.goldWarning.active = true
+
+    onLoad() {
+        window.myGoods = this
+
+        this.foodFrame = ['icecream', 'coka', 'strawberryCookie', 'bearCookies']
+        this.realFoodFrame = ['ice', 'kele', 'cookiesbar', 'bearcook']
+
+
+        this.clickgood = this.node.getComponent(cc.Sprite)
+            // cc.log(this.clickgood)
+        var clickEventHandler = new cc.Component.EventHandler();
+        //目标节点
+        clickEventHandler.target = this.node;
+        //脚本名称
+        clickEventHandler.component = "myGoods";
+        //添加回调函数
+        clickEventHandler.handler = "onRoleListBtnClick";
+        let button = this.node.getComponent(cc.Button);
+        //响应事件
+        button.clickEvents.push(clickEventHandler);
+
+
     },
 
-    hideGoldWarningDialog() {
-        this.goldWarning.active = false
+    //回调函数
+    onRoleListBtnClick(event) {
+        // cc.log(game.eatFlag)
+        if (!game.eatFlag) {
+            return
+        }
+        game.isChose += 1 //在背包中选择
+
+        if (game.isChose === 1) {
+            let good = cc.instantiate(this.eatfood)
+            game.pet.addChild(good)
+            for (let i = 0; i < 4; i++) {
+                //获取eatfood
+                if (this.foodFrame[i] === this.clickgood.spriteFrame.name) {
+                    //对应good num 减少
+                    game.goodNameNum[this.foodFrame[i]] -= 1
+                    let num = game.goodNameNum[this.foodFrame[i]]
+                    game.saveFood(this.foodFrame[i]) //在playerInfo 中保存食物数量
+                    cc.log(num)
+                    if (num === 0) {
+                        game.goodNum = 0 //位置计数改为0
+                        game.goodPanel.getChildByName(this.foodFrame[i]).destroy() //!!
+                        this.reLoadBag()
+                    }
+                    game.setLabel(this.foodFrame[i]) //背包数量Label
+
+                    good.getComponent(cc.Sprite).spriteFrame = this.spa_food.getSpriteFrame(this.realFoodFrame[i])
+                }
+            }
+            good.setPosition(cc.v2(0, -50))
+        } else {
+            shopMenu.showGoldWarningDialog("eatFood")
+        }
     },
 
-    //背包资源加载
-    initInfo(info) {
-        // 图片
-        var self = this;
-        cc.resources.load(info['picUrl'], cc.SpriteFrame, function(err, spriteFrame) {
-            self.node.getComponent(cc.Sprite).spriteFrame = spriteFrame;
-        });
-
-        // 介绍
-        this.node.intro = info['intro'];
-        console.log('load success')
+    //重新渲染背包
+    reLoadBag() {
+        for (let j = 0; j <= 4; j++) {
+            let remanGood = game.goodPanel.getChildByName(this.foodFrame[j])
+            let nums = game.goodNameNum[this.foodFrame[j]]
+            if (nums > 0) {
+                remanGood.setPosition(game.setGoodPosition())
+            }
+        }
     },
 
-    // onLoad () {},
 
     start() {
 

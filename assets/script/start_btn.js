@@ -5,6 +5,8 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/manual/en/scripting/life-cycle-callbacks.html
 
+// const { Bmob } = require("./bmob");
+
 cc.Class({
     extends: cc.Component,
 
@@ -25,28 +27,102 @@ cc.Class({
         //     }
         // },
         setting: cc.Node,
-        // game: cc.SceneAsset,
+        nameLabel: cc.Label,
+        initPanel: cc.Node
+            // game: cc.SceneAsset,
     },
 
     // LIFE-CYCLE CALLBACKS:
 
     onLoad() {
-        // cc.director.preloadScene("game", function() {
-        //     cc.log("Next scene preloaded");
-        // });
+
+        this.Bmob = require('../script/bmob')
+        this.Bmob.initialize("c22c521ba019610a", "011217")
+
+        window.playerInfo = {
+            // id: "bbaa3a422e",
+            id: "UZ6F111R",
+            // icon: {
+            //     "__type": "File",
+            //     "group": "upyun",
+            //     "filename": "1.xml",
+            //     "url": ""
+            // },
+            name: "penguin",
+            level: 0,
+            gold: 0,
+            moodValue: 0,
+            physicalValue: 0,
+            cleanValue: 0,
+
+            icecream: 0,
+            coka: 0,
+            bearCookies: 0,
+            strawberryCookie: 0,
+        }
+    },
+
+
+    loadPlayer() {
+        playerInfo.id = JSON.parse(cc.sys.localStorage.getItem('id'))
+        if (playerInfo.id != "UZ6F111R") {
+            cc.log("无此玩家")
+            this.initPanel.active = true
+        } else {
+            cc.log("存在此玩家")
+            const query = this.Bmob.Query('player')
+            query.get(playerInfo.id).then(res => {
+                playerInfo.name = res.name
+                playerInfo.gold = res.gold
+                playerInfo.level = res.level
+                playerInfo.moodValue = res.moodValue
+                playerInfo.physicalValue = res.physicalValue
+                playerInfo.cleanValue = res.cleanValue
+                playerInfo.icecream = res.icecream
+                playerInfo.coka = res.coka
+                playerInfo.bearCookies = res.bearCookies
+                playerInfo.strawberryCookie = res.strawberryCookie
+                    // res.icon = playerInfo.icon
+                cc.log(res)
+                cc.log(res.icon)
+            }).catch(err => {
+                console.log(err)
+            })
+            cc.director.loadScene("scenes/game")
+        }
     },
 
 
     btn_callback(sender, infm) {
         if (infm === "start") {
-            console.log("start");
-            cc.director.loadScene("scenes/game");
+            cc.sys.localStorage.setItem('id', JSON.stringify(playerInfo.id))
+            this.loadPlayer()
+                // cc.director.loadScene("scenes/game")
         } else if (infm === "set") {
             this.setting.active = true;
         } else if (infm === "cross") {
             this.setting.active = false;
+        } else if (infm === "init") {
+            playerInfo.name = this.nameLabel.string
+            const query = Bmob.Query('player');
+            query.set("name", playerInfo.name)
+            query.set("gold", playerInfo.gold)
+            query.set("level", playerInfo.level)
+            query.set("moodValue", playerInfo.moodValue)
+            query.set("physicalValue", playerInfo.physicalValue)
+            query.set("cleanValue", playerInfo.cleanValue)
+                //保存新建玩家的数据
+            query.save().then(res => {
+                playerInfo.id = res.objectId
+                cc.log(playerInfo)
+                cc.log(res)
+            }).catch(err => {
+                console.log(err)
+            })
+            cc.director.loadScene("scenes/game")
         }
     },
+
 
     start() {
 

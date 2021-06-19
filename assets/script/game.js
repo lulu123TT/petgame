@@ -27,41 +27,155 @@ cc.Class({
         pet: cc.Node,
         clean: cc.Label,
         physical: cc.Label,
+        star: cc.Label,
         mood: cc.Label,
         button: cc.Node,
         gold: cc.Label,
+        petname: cc.Label,
 
-        //mybag 预制资源
-        goodPanel: cc.Node,
-        myGoods: cc.Prefab,
+        dishType: cc.Node, //食物种类面板
+        goodPanel: cc.Node, //背包货物面板
+
+
+        food: cc.Prefab, //食物预制体
+        foodnum: cc.Prefab, //食物数量预制体
+        buySuccess: cc.Prefab, //购买成功反馈
+
+        foodAtlas: cc.SpriteAtlas, //图集
+        friendPanel: cc.Node, //好友面板
+        petIcon: cc.Sprite, //头像
     },
 
     //背包资源预制s
-    spawnGoods() {
-        // this.goodsArray = []
-        // for (var i = 0; i < 1; i++) {
-        var good = cc.instantiate(this.myGoods)
-        good.getComponent('myGoods').initInfo('icecream')
-            // cc.resources.load('./icecream', cc.SpriteFrame, (err, spriteFrame) => {
-            //     good.spriteFrame = spriteFrame;
-            //     spriteFrame.addRef();
-            // });
-            // this.goodsArray.push(good)
-        cc.log(good.parent)
-        this.goodPanel.addChild(good)
-        cc.log(good.parent)
-        good.setPosition(cc.v2(0, 0))
-        console.log('spawn success')
-            // }
+    spawnGoods(goodName) {
+        if (this.goodNameNum[goodName] === 0) {
+            let good = cc.instantiate(this.food)
+            let numberLabel = cc.instantiate(this.foodnum)
+
+            //good setting
+            this.goodPanel.addChild(good)
+            good.getComponent(cc.Sprite).spriteFrame = this.foodAtlas.getSpriteFrame(goodName)
+            good.setPosition(this.setGoodPosition())
+
+            //food num label setting
+            good.addChild(numberLabel)
+            numberLabel.setPosition(cc.v2(90, 90))
+
+            //修改this.food生成的节点good的name,便于查找
+            good.name = goodName
+        }
+
+        //购买成功预制体
+        let buySuccessLabel = cc.instantiate(this.buySuccess)
+        this.dishType.getChildByName(goodName).addChild(buySuccessLabel)
+        buySuccessLabel.setPosition(cc.v2(0, 0))
+        buySuccessLabel.getComponent(cc.Label).string = goodName + "+1"
+        this.isBuy = 1
+
+        this.goodNameNum[goodName] += 1
+        this.setLabel(goodName) //设置背包数量Label
+        this.saveGold() //保存gold
+        console.log('spawn success') //spawn 成功
+        this.saveFood(goodName)
+    },
+
+
+
+    //更改背包食物数量
+    saveFood(info) {
+        //更改背包记录
+        const query = Bmob.Query('player');
+        query.set('id', playerInfo.id) //需要修改的objectId
+        if (info === "icecream") {
+            playerInfo.icecream = this.goodNameNum[info]
+            query.set(info, playerInfo.icecream)
+        } else if (info === "coka") {
+            playerInfo.coka = this.goodNameNum[info]
+            query.set(info, playerInfo.coka)
+        } else if (info === "bearCookies") {
+            playerInfo.bearCookies = this.goodNameNum[info]
+            query.set(info, playerInfo.bearCookies)
+        } else if (info === "strawberryCookie") {
+            playerInfo.strawberryCookie = this.goodNameNum[info]
+            query.set(info, playerInfo.strawberryCookie)
+        }
+        query.save().then(res => {
+            console.log(res)
+            console.log(playerInfo)
+        }).catch(err => {
+            console.log(err)
+        })
+    },
+
+    //改变mygood的label属性
+    setLabel(str) {
+        let savedgood = this.goodPanel.getChildByName(str)
+        let savedgoodLabel = savedgood.getChildByName("foodnum") //this.foodname的默认name即为foodname
+        savedgoodLabel.getComponent(cc.Label).string = "x" + this.goodNameNum[str]
+    },
+
+    setGoodPosition() {
+        this.goodNum += 1
+        if (this.goodNum === 1) {
+            return cc.v2(-130, 200)
+        } else if (this.goodNum === 2) {
+            return cc.v2(130, 200)
+        } else if (this.goodNum === 3) {
+            return cc.v2(-130, -90)
+        } else if (this.goodNum === 4) {
+            return cc.v2(130, -90)
+        }
+        cc.log(this.goodNum)
+        cc.log("position")
+    },
+
+    //访问好友 btn
+    visitBtn(sender, info) {
+        if (info === "visit") {
+            this.friendPanel.active = true
+        } else if (info === "flamingo") {
+            this.petIcon.getComponent(cc.Sprite).spriteFrame = this.foodAtlas.getSpriteFrame('tutu') //更换头像
+            const query = Bmob.Query('player')
+            query.get("53d20398ae").then(res => {
+                cc.log(res)
+                playerInfo.id = res.objectId
+                playerInfo.name = res.name
+                playerInfo.gold = res.gold
+                playerInfo.level = res.level
+                playerInfo.moodValue = res.moodValue
+                playerInfo.physicalValue = res.physicalValue
+                playerInfo.cleanValue = res.cleanValue
+                playerInfo.icecream = res.icecream
+                playerInfo.coka = res.coka
+                playerInfo.bearCookies = res.bearCookies
+                playerInfo.strawberryCookie = res.strawberryCookie
+                    // res.set()
+                res.save()
+                this.initValue()
+                cc.log(playerInfo)
+            }).catch(err => {
+                console.log(err)
+            })
+            this.friendPanel.active = false
+        } else if (info === "cross") {
+            this.friendPanel.active = false
+        }
     },
 
     //bag btn
-    bagBtn() {
-        if (this.goodPanel.parent.active) {
-            this.goodPanel.parent.active = false
-        } else {
-            this.goodPanel.parent.active = true
-            this.spawnGoods()
+    bagBtn(sender, comm) {
+        if (comm === "open") {
+            this.goodPanel.active = true
+        } else if (comm === "cross") {
+            this.goodPanel.active = false
+            if (this.eatFlag && this.isChose) {
+                this.pet.getComponent(cc.Animation).play('animEat')
+                this.physicalValueAdd()
+                this.cleanValueSub()
+                this.button.active = false
+                this.eatFlag = 0
+                this.isChose = 0
+            }
         }
     },
 
@@ -69,91 +183,208 @@ cc.Class({
         this.goldAdd()
         var anim = this.pet.getComponent(cc.Animation);
         if (infm === "eat") {
-            anim.play('animEat')
-            this.physicalValueAdd()
-        } else if (infm === "drink") {
-            anim.play('animDrink')
-            this.physicalValueAdd()
+            this.eatFlag = 1
+            this.isEat = 1 //判断是否销毁eatfood
+
+            this.goodPanel.active = true
+            cc.log("activeInHierarchy: " + this.goodPanel.activeInHierarchy);
         } else if (infm === "shower") {
             anim.play('animWash')
             this.cleanValueAdd()
+            this.physicalValueSub()
         } else if (infm === "study") {
             anim.play('animStudy')
             this.moodvalueAdd()
             this.physicalValueSub()
+            this.cleanValueSub()
         } else if (infm === "work") {
             anim.play('animWorking')
-            this.moodvalueAdd()
             this.physicalValueSub()
-        } else if (infm === "goToWork") {
-            anim.play('animGoToWork')
             this.moodvalueAdd()
-            this.physicalValueSub()
+            this.cleanValueSub()
         }
 
         //允许单个动作进行
-        this.button.active = false
+        // this.button.active = false
         anim.on('finished', (msg) => {
             this.button.active = true;
+
+            if (this.isEat === 1) {
+                let food = this.pet.getChildByName("eatfood") //销毁食物
+                food.destroy()
+                this.isEat = 0
+            }
         }, this)
 
+        var sum = this.cleanValue + this.physicalValue + this.moodValue;
+        if ((sum > 15) && (this.goldValue > 100)) {
+            this.starAdd()
+        }
+
         //存储数据
-        var goldValue = this.goldValue
-        this.gold.string = this.goldValue;
-        cc.sys.localStorage.setItem('goldValue', JSON.stringify(this.goldValue));
+        this.saveGold()
 
-        var moodValue = this.moodValue
-        this.mood.string = "心情值：" + this.moodValue;
-        cc.sys.localStorage.setItem('moodValue', JSON.stringify(this.moodValue));
+        playerInfo.moodValue = this.moodValue //更新playerInfo对应的值
+        playerInfo.cleanValue = this.cleanValue
+        playerInfo.physicalValue = this.physicalValue
+        playerInfo.starValue = this.starValue
 
-        var cleanValue = this.cleanValue
-        this.clean.string = "清洁值：" + this.cleanValue;
-        cc.sys.localStorage.setItem('cleanValue', JSON.stringify(this.cleanValue));
+        //更改记录
+        const query = Bmob.Query('player');
+        query.set('id', playerInfo.id) //需要修改的objectId
+        query.set("moodValue", playerInfo.moodValue)
+        query.set("physicalValue", playerInfo.physicalValue)
+        query.set("cleanValue", playerInfo.cleanValue)
+        query.set("level", playerInfo.level)
+        query.save().then(res => {
+            console.log(res)
+        }).catch(err => {
+            console.log(err)
+        })
+    },
 
-        var physicalValue = this.physicalValue
-        this.physical.string = "体力值：" + this.physicalValue;
-        cc.sys.localStorage.setItem('physicalValue', JSON.stringify(this.physicalValue));
+
+    //删除孩子节点
+
+    removeChildren(pnode) {
+        let childs = pnode.childNodes;
+        for (let i = childs.length - 1; i >= 0; i--) {
+            pnode.removeChild(childs.item(i));
+        }
     },
 
     // LIFE-CYCLE CALLBACKS:
+    saveGold() {
+        playerInfo.gold = this.goldValue
+        this.gold.string = this.goldValue;
+        // cc.sys.localStorage.setItem('goldValue', JSON.stringify(this.goldValue))
+        cc.log("save gold success")
+
+        //更改金币记录
+        const query = Bmob.Query('player');
+        query.set('id', playerInfo.id) //需要修改的objectId
+        query.set('gold', playerInfo.gold)
+        query.save().then(res => {
+            console.log(res)
+        }).catch(err => {
+            console.log(err)
+        })
+    },
+
 
     onLoad() {
         //全局化
         window.game = this
-
-        //初始化属性值
+            //吃饭flag
+        this.eatFlag = 0
+            //已经选择
+        this.isChose = 0
+        this.isEat = 0
+            //初始化属性值
         this.moodValue = 0
         this.cleanValue = 0
         this.physicalValue = 0
         this.goldValue = 0
+        this.starValue = 0
+        this.petname.string = 0
+
+        this.timer = 0 //计时器
+        this.isBuy = 0
+
+        //数据库
+        let Bmob = require('../script/bmob')
+        Bmob.initialize("c22c521ba019610a", "011217")
+        const query = Bmob.Query('player')
+        query.get(playerInfo.id).then(res => {
+            cc.log(res)
+            cc.log(playerInfo)
+        }).catch(err => {
+            console.log(err)
+        })
+
+        this.goodNum = 0 //商品setposition时给定的参数值
+        this.foodNum = [this.icecream, this.coka, this.bearCookies, this.strawberryCookie]
+        this.goodTitle = ["icecream", "coka", "bearCookies", "strawberryCookie"]
+
+        this.goodNameNum = {
+            "icecream": 0,
+            "coka": 0,
+            "bearCookies": 0,
+            "strawberryCookie": 0,
+        }
+
+        this.initValue()
+        this.initBag()
+        cc.log("load success")
+    },
+
+    initValue() {
+        this.moodValue = playerInfo.moodValue
+        this.cleanValue = playerInfo.cleanValue
+        this.physicalValue = playerInfo.physicalValue
+        this.goldValue = playerInfo.gold
+        this.petname.string = playerInfo.name
+        this.starValue = playerInfo.level
+        this.petIcon.getComponent(cc.Sprite).spriteFrame = this.foodAtlas.getSpriteFrame('dog')
 
 
         //读取用户数据
-        this.goldValue = JSON.parse(cc.sys.localStorage.getItem('goldValue'))
         this.gold.string = this.goldValue
-
-        this.moodValue = JSON.parse(cc.sys.localStorage.getItem('moodValue'))
         this.mood.string = "心情值：" + this.moodValue
-
-        this.cleanValue = JSON.parse(cc.sys.localStorage.getItem('cleanValue'))
         this.clean.string = "清洁值：" + this.cleanValue
-
-        this.physicalValue = JSON.parse(cc.sys.localStorage.getItem('physicalValue'))
         this.physical.string = "体力值：" + this.physicalValue
+        cc.log("数值保存成功")
 
-
-        this.bagBtn()
+        this.goodNameNum = {
+            "icecream": playerInfo.icecream,
+            "coka": playerInfo.coka,
+            "bearCookies": playerInfo.bearCookies,
+            "strawberryCookie": playerInfo.strawberryCookie,
+        }
     },
+
+
+    //初始化背包资源
+    initBag() {
+        // let myGoods = this.node.getChildByName("petProperty").getChildByName("petPropertyPanel").getChildByName("mygoods")
+        for (let i = 0; i < 4; i++) {
+
+            let initGood = this.goodTitle[i]
+            if (this.goodNameNum[initGood] > 0) {
+                let good = cc.instantiate(this.food)
+                let numberLabel = cc.instantiate(this.foodnum)
+
+                //good setting
+                this.goodPanel.addChild(good)
+                good.getComponent(cc.Sprite).spriteFrame = this.foodAtlas.getSpriteFrame(initGood)
+                good.setPosition(this.setGoodPosition())
+
+                //food num label setting
+                good.addChild(numberLabel)
+                numberLabel.setPosition(cc.v2(90, 90))
+
+                //修改this.food生成的节点good的name,便于查找
+                good.name = initGood
+                this.setLabel(initGood) //背包数量Label
+            }
+        }
+        cc.log("背包资源保存成功")
+    },
+
 
     //gold value count
     goldAdd() {
-        var goldValue
         this.goldValue += 10;
+    },
+
+    starAdd() {
+        this.starValue += 1;
+        this.star.string = this.starValue;
     },
 
     //mood value count
     moodvalueAdd() {
-        this.moodValue += 1;
+        this.moodValue += 2;
         this.mood.string = "心情值：" + this.moodValue;
     },
     moodvalueSub() {
@@ -163,7 +394,7 @@ cc.Class({
 
     //clean value count
     cleanValueAdd() {
-        this.cleanValue += 1;
+        this.cleanValue += 2;
         this.clean.string = "清洁值：" + this.cleanValue;
     },
     cleanValueSub() {
@@ -173,7 +404,7 @@ cc.Class({
 
     //physical value count
     physicalValueAdd() {
-        this.physicalValue += 1;
+        this.physicalValue += 2;
         this.physical.string = "体力值：" + this.physicalValue;
     },
     physicalValueSub() {
@@ -185,5 +416,19 @@ cc.Class({
 
     },
 
-    // update (dt) {},
+    update(dt) {
+        if (this.isBuy === 1) {
+            // cc.log(this.isBuy)
+            this.timer += dt
+            if (this.timer > 1) {
+                for (let i = 0; i < 4; i++) {
+                    // this.dishType.getChildByName(this.goodTitle[i]).getChildByName("buySuccess").destroy()
+                    // cc.log(this.dishType.getChildByName(goodTitle[i]))
+                    // cc.log(this.dishType.getChildByName(this.goodTitle[i]).hasChildNodes())
+                }
+                this.isBuy = 0
+            }
+        }
+
+    },
 });
