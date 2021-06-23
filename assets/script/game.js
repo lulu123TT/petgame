@@ -35,16 +35,30 @@ cc.Class({
 
         dishType: cc.Node, //食物种类面板
         goodPanel: cc.Node, //背包货物面板
+        friendPanel: cc.Node, //好友面板 总
+        realfriendPanel: cc.Node, //好友面板中单面板精灵
 
 
         food: cc.Prefab, //食物预制体
         foodnum: cc.Prefab, //食物数量预制体
-        buySuccess: cc.Prefab, //购买成功反馈
+        buySuccess: cc.Prefab, //购买成功反馈预制体
+        friend: cc.Prefab, //好友预制体
 
         foodAtlas: cc.SpriteAtlas, //图集
-        friendPanel: cc.Node, //好友面板
         petIcon: cc.Sprite, //头像
     },
+
+    // createFriend() {
+    //     list = playerInfo.friend
+    //     for (let i = 0; i < list.length; i++) {
+    //         const query = Bmob.Query('player');
+    //         query.get(list[i]).then(res => {
+    //             console.log(res)
+    //         }).catch(err => {
+    //             console.log(err)
+    //         })
+    //     }
+    // },
 
     //背包资源预制s
     spawnGoods(goodName) {
@@ -70,7 +84,10 @@ cc.Class({
         this.dishType.getChildByName(goodName).addChild(buySuccessLabel)
         buySuccessLabel.setPosition(cc.v2(0, 0))
         buySuccessLabel.getComponent(cc.Label).string = goodName + "+1"
-        this.isBuy = 1
+            // 计时器
+        this.scheduleOnce(function() {
+            buySuccessLabel.destroy()
+        }, 1);
 
         this.goodNameNum[goodName] += 1
         this.setLabel(goodName) //设置背包数量Label
@@ -129,6 +146,9 @@ cc.Class({
         cc.log("position")
     },
 
+
+
+
     //访问好友 btn
     visitBtn(sender, info) {
         if (info === "visit") {
@@ -149,7 +169,6 @@ cc.Class({
                 playerInfo.coka = res.coka
                 playerInfo.bearCookies = res.bearCookies
                 playerInfo.strawberryCookie = res.strawberryCookie
-                    // res.set()
                 res.save()
                 this.initValue()
                 cc.log(playerInfo)
@@ -297,7 +316,6 @@ cc.Class({
         const query = Bmob.Query('player')
         query.get(playerInfo.id).then(res => {
             cc.log(res)
-            cc.log(playerInfo)
         }).catch(err => {
             console.log(err)
         })
@@ -313,8 +331,9 @@ cc.Class({
             "strawberryCookie": 0,
         }
 
-        this.initValue()
-        this.initBag()
+        this.initValue() //playerInfo属性值渲染
+        this.initBag() //playerInfo背包资源渲染
+        this.initFriend() //playerInfo好友资源渲染
         cc.log("load success")
     },
 
@@ -346,11 +365,14 @@ cc.Class({
 
     //初始化背包资源
     initBag() {
+        // this.gameNum = 0 //位置计数改为零
+
         // let myGoods = this.node.getChildByName("petProperty").getChildByName("petPropertyPanel").getChildByName("mygoods")
         for (let i = 0; i < 4; i++) {
 
             let initGood = this.goodTitle[i]
             if (this.goodNameNum[initGood] > 0) {
+                cc.log(this.goodNameNum[initGood])
                 let good = cc.instantiate(this.food)
                 let numberLabel = cc.instantiate(this.foodnum)
 
@@ -371,6 +393,26 @@ cc.Class({
         cc.log("背包资源保存成功")
     },
 
+    //渲染好友资源
+    initFriend() {
+        let y = 0
+        let name
+        for (let i = 0; i < 3; i++) {
+            const query = Bmob.Query('player')
+            query.get(playerInfo.friend[i]).then(res => {
+                name = res.name
+                let friend = cc.instantiate(this.friend)
+                this.realfriendPanel.addChild(friend)
+                friend.getComponent(cc.Label).string = name
+                friend.setPosition(cc.v2(-50, y))
+                y += 90
+                friend.name = name
+            }).catch(err => {
+                console.log(err)
+            })
+        }
+        cc.log("好友资源保存成功")
+    },
 
     //gold value count
     goldAdd() {
@@ -417,18 +459,10 @@ cc.Class({
     },
 
     update(dt) {
-        if (this.isBuy === 1) {
-            // cc.log(this.isBuy)
-            this.timer += dt
-            if (this.timer > 1) {
-                for (let i = 0; i < 4; i++) {
-                    // this.dishType.getChildByName(this.goodTitle[i]).getChildByName("buySuccess").destroy()
-                    // cc.log(this.dishType.getChildByName(goodTitle[i]))
-                    // cc.log(this.dishType.getChildByName(this.goodTitle[i]).hasChildNodes())
-                }
-                this.isBuy = 0
-            }
-        }
-
+        // if (this.isBuy === 1) {
+        //     cc.log("在这里")
+        //     cc.log(this.isBuy)
+        //     this.timer += dt
+        // }
     },
 });
