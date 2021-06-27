@@ -28,9 +28,11 @@ cc.Class({
         // },
         setting: cc.Node,
         nameLabel: cc.Label,
+        idLabel: cc.Label,
         initPanel: cc.Node,
-        // setPanel: cc.Node,
-        // game: cc.SceneAsset,
+        addPlayerPanel: cc.Node,
+
+        cue: cc.Prefab, //提示
     },
 
     // LIFE-CYCLE CALLBACKS:
@@ -39,38 +41,43 @@ cc.Class({
 
         this.Bmob = require('../script/bmob')
         this.Bmob.initialize("c22c521ba019610a", "011217")
+        window.friendInfo = {
+            // id: "bbaa3a422e",
+            id: "UZ6F111R",
+            name: "penguin",
+            level: 0,
+            gold: 0,
+            moodValue: 0,
+            physicalValue: 0,
+            cleanValue: 0,
 
+            icecream: 0,
+            coka: 0,
+            bearCookies: 0,
+            strawberryCookie: 0,
+            // friend: ['53d20398ae', 'UHpv333Y', 'huPv555B']
+            friend: [],
+            friendsNum: 0,
+        }
         window.playerInfo = {
-                // id: "bbaa3a422e",
-                id: "UZ6F111R",
-                // icon: {
-                //     "__type": "File",
-                //     "group": "upyun",
-                //     "filename": "1.xml",
-                //     "url": ""
-                // },
-                name: "penguin",
-                level: 0,
-                gold: 0,
-                moodValue: 0,
-                physicalValue: 0,
-                cleanValue: 0,
+            // id: "bbaa3a422e",
+            id: "UZ6F111R",
+            name: "penguin",
+            level: 0,
+            gold: 0,
+            moodValue: 0,
+            physicalValue: 5,
+            cleanValue: 0,
 
-                icecream: 0,
-                coka: 0,
-                bearCookies: 0,
-                strawberryCookie: 0,
-                friend: ['53d20398ae', 'UHpv333Y', 'huPv555B']
-            }
-            //为默认玩家设置朋友数组
-        const query = Bmob.Query('player');
-        query.set('id', 'UZ6F111R') //需要修改的objectId
-        query.set('friend', playerInfo.friend)
-        query.save().then(res => {
-            console.log(res)
-        }).catch(err => {
-            console.log(err)
-        })
+
+            icecream: 0,
+            coka: 0,
+            bearCookies: 0,
+            strawberryCookie: 0,
+            // friend: ['53d20398ae', 'UHpv333Y', 'huPv555B']
+            friend: [],
+            // friendsNum: 0,
+        }
 
         window.myId = playerInfo.id
     },
@@ -78,16 +85,15 @@ cc.Class({
 
     loadPlayer() {
         playerInfo.id = JSON.parse(cc.sys.localStorage.getItem('id'))
-            // if (playerInfo.id != "UZ6F111R") {
-            //     cc.log("无此玩家")
-            //     this.initPanel.active = true
-            // } else {
         cc.log("存在此玩家")
+        this.setPlayerInfo()
+        cc.director.loadScene("scenes/game")
+            // }
+    },
+
+    //为playerInfo赋初值
+    setPlayerInfo() {
         const query = this.Bmob.Query('player')
-            // const query = Bmob.Query("tableName");
-        query.find().then(res => {
-            console.log(res)
-        });
         query.get(playerInfo.id).then(res => {
             playerInfo.name = res.name
             playerInfo.gold = res.gold
@@ -99,21 +105,29 @@ cc.Class({
             playerInfo.coka = res.coka
             playerInfo.bearCookies = res.bearCookies
             playerInfo.strawberryCookie = res.strawberryCookie
+                // playerInfo.friendsNum = res.friendsNum
             playerInfo.friend = res.friend
-                // res.icon = playerInfo.icon
             cc.log(res)
+            cc.director.loadScene("scenes/game")
         }).catch(err => {
             console.log(err)
+            let cues = cc.instantiate(this.cue)
+            this.initPanel.addChild(cues)
+            cues.setPosition(cc.v2(0, 50))
+            cues.getComponent(cc.Label).string = "不存在该玩家"
+            this.scheduleOnce(function() {
+                cues.destroy()
+            }, 1);
+            console.log("不存在该玩家")
         })
-        cc.director.loadScene("scenes/game")
-            // }
     },
-
 
     btn_callback(sender, infm) {
         if (infm === "start") {
-            cc.sys.localStorage.setItem('id', JSON.stringify(playerInfo.id))
-            this.loadPlayer()
+            // this.loadPlayer()
+            this.initPanel.active = true
+                // playerInfo.id = this.nameLabel.string
+                // this.setPlayerInfo()
                 // cc.director.loadScene("scenes/game")
         } else if (infm === "set") {
             this.setting.active = true;
@@ -121,11 +135,16 @@ cc.Class({
             this.setting.active = false;
         } else if (infm === "add") {
             this.setting.active = false
-            this.initPanel.active = true
+            this.addPlayerPanel.active = true
         } else if (infm === "close") {
             this.initPanel.active = false
         } else if (infm === "init") {
+            playerInfo.id = this.idLabel.string
+            this.setPlayerInfo()
+                // cc.director.loadScene("scenes/game")
+        } else if (infm === "create") {
             playerInfo.name = this.nameLabel.string
+            cc.log(this.nameLabel.string)
             const query = Bmob.Query('player');
             query.set("name", playerInfo.name)
             query.set("gold", playerInfo.gold)
@@ -133,6 +152,11 @@ cc.Class({
             query.set("moodValue", playerInfo.moodValue)
             query.set("physicalValue", playerInfo.physicalValue)
             query.set("cleanValue", playerInfo.cleanValue)
+            query.set("icecream", playerInfo.icecream)
+            query.set("coka", playerInfo.coka)
+            query.set("bearCookies", playerInfo.bearCookies)
+            query.set("strawberryCookie", playerInfo.strawberryCookie)
+            query.set("friend", playerInfo.friend)
                 //保存新建玩家的数据
             query.save().then(res => {
                 playerInfo.id = res.objectId
@@ -142,9 +166,17 @@ cc.Class({
             }).catch(err => {
                 console.log(err)
             })
-            cc.director.loadScene("scenes/game")
+            let cues = cc.instantiate(this.cue)
+            this.addPlayerPanel.addChild(cues)
+            cues.setPosition(cc.v2(0, 50))
+            cues.getComponent(cc.Label).string = "成功创建玩家"
+            this.scheduleOnce(function() {
+                cues.destroy()
+                cc.director.loadScene("scenes/game")
+            }, 1);
         }
     },
+
 
 
     start() {

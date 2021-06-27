@@ -50,61 +50,34 @@ cc.Class({
 
         //获取父母节点   getid 渲染
         const query = Bmob.Query('player')
-
-        for (let i = 0; i < 3; i++) {
-            query.get(playerInfo.friend[i]).then(res => {
-                let title = game.realfriendPanel.getChildByName(res.name)
-                cc.log(title)
-                title.destroy()
-                title.active = false
-                cc.log(cc.isValid(title))
-                cc.log(title)
-            }).catch(err => {
-                console.log(err)
-            })
-        }
-
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < playerInfo.friendsNum; i++) {
             query.get(playerInfo.friend[i]).then(res => {
                 let name = res.name
-                    // game.realfriendPanel.getChildByName(name).destroy()
                 if (name === friendName) {
-
-                    //摧毁当前背包资源节点
-                    for (let j = 0; j < 4; j++) {
-                        game.goodNum = 0 //位置计数改为0
-                        game.goodPanel.getChildByName(game.goodTitle[j]).destroy() //!!
-                    }
-
-                    cc.log("我的好友")
-                    cc.log(res.friend)
-                        //更改playerInfo的对应的值
-                    playerInfo.id = res.objectId
-                    playerInfo.name = res.name
-                    playerInfo.gold = res.gold
-                    playerInfo.level = res.level
-                    playerInfo.moodValue = res.moodValue
-                    playerInfo.physicalValue = res.physicalValue
-                    playerInfo.cleanValue = res.cleanValue
-                    playerInfo.icecream = res.icecream
-                    playerInfo.coka = res.coka
-                    playerInfo.bearCookies = res.bearCookies
-                    playerInfo.strawberryCookie = res.strawberryCookie
-                    playerInfo.friend = res.friend
-
-                    // res.save()
-                    //初始化资源
-                    game.initValue()
-                    game.initBag()
-                    game.initFriend()
-                        // break
+                    //更改playerInfo的对应的值
+                    friendInfo.id = res.objectId
+                    friendInfo.name = res.name
+                    friendInfo.gold = res.gold
+                    friendInfo.level = res.level
+                    friendInfo.moodValue = res.moodValue
+                    friendInfo.physicalValue = res.physicalValue
+                    friendInfo.cleanValue = res.cleanValue
+                    friendInfo.icecream = res.icecream
+                    friendInfo.coka = res.coka
+                    friendInfo.bearCookies = res.bearCookies
+                    friendInfo.strawberryCookie = res.strawberryCookie
+                    friendInfo.friend = res.friend // res.save()
+                        //初始化资源
+                    game.initValue(playerInfo, friendInfo)
+                        // game.initBag()
+                        // game.initFriend()
                 }
 
             }).catch(err => {
                 console.log(err)
             })
         }
-        game.friendPanel.active = false
+        // game.friendPanel.active = false
     },
 
 

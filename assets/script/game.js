@@ -25,6 +25,11 @@ cc.Class({
         //     }
         // },
         pet: cc.Node,
+        bg: cc.Node,
+        petIcon: cc.Sprite, //头像
+        myBody: cc.Node,
+
+        addFriendId: cc.Label,
         clean: cc.Label,
         physical: cc.Label,
         star: cc.Label,
@@ -32,11 +37,13 @@ cc.Class({
         button: cc.Node,
         gold: cc.Label,
         petname: cc.Label,
+        id: cc.Label,
 
         dishType: cc.Node, //食物种类面板
         goodPanel: cc.Node, //背包货物面板
         friendPanel: cc.Node, //好友面板 总
         realfriendPanel: cc.Node, //好友面板中单面板精灵
+        addFriendPanel: cc.Node, //添加好友面板
 
 
         food: cc.Prefab, //食物预制体
@@ -45,20 +52,10 @@ cc.Class({
         friend: cc.Prefab, //好友预制体
 
         foodAtlas: cc.SpriteAtlas, //图集
-        petIcon: cc.Sprite, //头像
+        bgAtlas: cc.SpriteAtlas, //图集
+        bodyAtalas: cc.SpriteAtlas, //图集
     },
 
-    // createFriend() {
-    //     list = playerInfo.friend
-    //     for (let i = 0; i < list.length; i++) {
-    //         const query = Bmob.Query('player');
-    //         query.get(list[i]).then(res => {
-    //             console.log(res)
-    //         }).catch(err => {
-    //             console.log(err)
-    //         })
-    //     }
-    // },
 
     //背包资源预制s
     spawnGoods(goodName) {
@@ -129,6 +126,8 @@ cc.Class({
         let savedgood = this.goodPanel.getChildByName(str)
         let savedgoodLabel = savedgood.getChildByName("foodnum") //this.foodname的默认name即为foodname
         savedgoodLabel.getComponent(cc.Label).string = "x" + this.goodNameNum[str]
+        cc.log(savedgoodLabel)
+        cc.log(savedgoodLabel.parent)
     },
 
     setGoodPosition() {
@@ -149,38 +148,6 @@ cc.Class({
 
 
 
-    //访问好友 btn
-    visitBtn(sender, info) {
-        if (info === "visit") {
-            this.friendPanel.active = true
-        } else if (info === "flamingo") {
-            this.petIcon.getComponent(cc.Sprite).spriteFrame = this.foodAtlas.getSpriteFrame('tutu') //更换头像
-            const query = Bmob.Query('player')
-            query.get("53d20398ae").then(res => {
-                cc.log(res)
-                playerInfo.id = res.objectId
-                playerInfo.name = res.name
-                playerInfo.gold = res.gold
-                playerInfo.level = res.level
-                playerInfo.moodValue = res.moodValue
-                playerInfo.physicalValue = res.physicalValue
-                playerInfo.cleanValue = res.cleanValue
-                playerInfo.icecream = res.icecream
-                playerInfo.coka = res.coka
-                playerInfo.bearCookies = res.bearCookies
-                playerInfo.strawberryCookie = res.strawberryCookie
-                res.save()
-                this.initValue()
-                cc.log(playerInfo)
-            }).catch(err => {
-                console.log(err)
-            })
-            this.friendPanel.active = false
-        } else if (info === "cross") {
-            this.friendPanel.active = false
-        }
-    },
-
     //bag btn
     bagBtn(sender, comm) {
         if (comm === "open") {
@@ -198,8 +165,64 @@ cc.Class({
         }
     },
 
+
+    backHome() {
+        this.initValue(playerInfo, playerInfo)
+    },
+    visitBtn(sender, info) {
+        if (info === "visit") {
+            this.friendPanel.active = true
+        } else if (info === "cross") {
+            this.friendPanel.active = false
+        } else if (info === "myFriend") {
+            this.realfriendPanel.active = true
+            this.addFriendPanel.active = false
+        } else if (info === "addFriend") {
+            this.realfriendPanel.active = false
+            this.addFriendPanel.active = true
+            cc.log("nonono")
+        } else if (info === "add") {
+            const query = Bmob.Query('player')
+            if (this.addFriendId.string != "") {
+                cc.log("string 不为空")
+                query.get(this.addFriendId.string).then(res => {
+                    console.log(res)
+                    let existPlayer = cc.instantiate(this.buySuccess)
+                    this.addFriendPanel.addChild(existPlayer)
+                    existPlayer.setPosition(cc.v2(0, -200))
+                    existPlayer.getComponent(cc.Label).string = "玩家" + res.objectId + "存在"
+                    this.scheduleOnce(function() {
+                        existPlayer.destroy()
+                    }, 2);
+                    cc.log("存在该玩家")
+                    this.destroyFriend()
+                    playerInfo.friend = [...playerInfo.friend, this.addFriendId.string]
+                        // playerInfo.friendsNum += 1
+                    this.saveself(playerInfo)
+                    this.initFriend()
+
+
+                }).catch(err => {
+                    cc.log(err.code)
+                    if (err.code != 415) {
+                        cc.log("不存在该玩家")
+                        let existPlayer = cc.instantiate(this.buySuccess)
+                        this.addFriendPanel.addChild(existPlayer)
+                        existPlayer.setPosition(cc.v2(0, -200))
+                        existPlayer.getComponent(cc.Label).string = "该玩家不存在"
+                        this.scheduleOnce(function() {
+                            existPlayer.destroy()
+                        }, 2);
+                    }
+                    console.log(err)
+                })
+            }
+        }
+    },
+
+
+
     btn_callback(sender, infm) {
-        this.goldAdd()
         var anim = this.pet.getComponent(cc.Animation);
         if (infm === "eat") {
             this.eatFlag = 1
@@ -218,13 +241,14 @@ cc.Class({
             this.cleanValueSub()
         } else if (infm === "work") {
             anim.play('animWorking')
+            this.goldAdd()
             this.physicalValueSub()
             this.moodvalueAdd()
             this.cleanValueSub()
         }
 
         //允许单个动作进行
-        // this.button.active = false
+        this.button.active = false
         anim.on('finished', (msg) => {
             this.button.active = true;
 
@@ -239,6 +263,16 @@ cc.Class({
         if ((sum > 15) && (this.goldValue > 100)) {
             this.starAdd()
         }
+        if (this.physicalValue < 0) {
+            cc.log(this.physicalValue)
+            let existPlayer = cc.instantiate(this.buySuccess)
+            this.bg.addChild(existPlayer)
+            existPlayer.setPosition(cc.v2(0, -200))
+            existPlayer.getComponent(cc.Label).string = "您的宠物体力值不足"
+            this.scheduleOnce(function() {
+                existPlayer.destroy()
+            }, 2);
+        }
 
         //存储数据
         this.saveGold()
@@ -249,19 +283,31 @@ cc.Class({
         playerInfo.starValue = this.starValue
 
         //更改记录
+        this.saveself(playerInfo)
+        this.saveself(friendInfo)
+    },
+
+    saveself(info) {
         const query = Bmob.Query('player');
-        query.set('id', playerInfo.id) //需要修改的objectId
-        query.set("moodValue", playerInfo.moodValue)
-        query.set("physicalValue", playerInfo.physicalValue)
-        query.set("cleanValue", playerInfo.cleanValue)
-        query.set("level", playerInfo.level)
+        query.set('id', info.id) //需要修改的objectId
+        query.set("moodValue", info.moodValue)
+        query.set("physicalValue", info.physicalValue)
+        query.set("cleanValue", info.cleanValue)
+        query.set("level", info.level)
+        query.set('icecream', info.icecream)
+        query.set('coka', info.coka)
+        query.set('bearCookies', info.bearCookies)
+        query.set('strawberryCookie', info.strawberryCookie)
+        query.set('gold', info.gold)
+        query.set('friend', info.friend)
+            // query.set('friendsNum', info.friendsNum)
         query.save().then(res => {
             console.log(res)
+            cc.log("self save success")
         }).catch(err => {
             console.log(err)
         })
     },
-
 
     //删除孩子节点
 
@@ -299,7 +345,9 @@ cc.Class({
             //已经选择
         this.isChose = 0
         this.isEat = 0
-            //初始化属性值
+        this.count = 0 //更换背景参数
+
+        //初始化属性值
         this.moodValue = 0
         this.cleanValue = 0
         this.physicalValue = 0
@@ -331,37 +379,47 @@ cc.Class({
             "strawberryCookie": 0,
         }
 
-        this.initValue() //playerInfo属性值渲染
+        this.initValue(playerInfo, playerInfo) //playerInfo属性值渲染
         this.initBag() //playerInfo背包资源渲染
         this.initFriend() //playerInfo好友资源渲染
         cc.log("load success")
     },
 
-    initValue() {
-        this.moodValue = playerInfo.moodValue
-        this.cleanValue = playerInfo.cleanValue
-        this.physicalValue = playerInfo.physicalValue
-        this.goldValue = playerInfo.gold
-        this.petname.string = playerInfo.name
-        this.starValue = playerInfo.level
+    initValue(info1, info2) {
+        this.moodValue = info2.moodValue
+        this.cleanValue = info2.cleanValue
+        this.physicalValue = info2.physicalValue
+        this.goldValue = info1.gold
+        this.petname.string = info2.name
+        this.starValue = info2.level
         this.petIcon.getComponent(cc.Sprite).spriteFrame = this.foodAtlas.getSpriteFrame('dog')
 
+        this.changeImg(this.count % 4 + 1)
+        this.count++;
 
-        //读取用户数据
         this.gold.string = this.goldValue
         this.mood.string = "心情值：" + this.moodValue
         this.clean.string = "清洁值：" + this.cleanValue
         this.physical.string = "体力值：" + this.physicalValue
+        this.id.string = "id: " + info2.id
         cc.log("数值保存成功")
 
         this.goodNameNum = {
-            "icecream": playerInfo.icecream,
-            "coka": playerInfo.coka,
-            "bearCookies": playerInfo.bearCookies,
-            "strawberryCookie": playerInfo.strawberryCookie,
+            "icecream": info1.icecream,
+            "coka": info1.coka,
+            "bearCookies": info1.bearCookies,
+            "strawberryCookie": info1.strawberryCookie,
         }
+        cc.log("初始化value")
+        cc.log(this.physicalValue)
     },
 
+    //更换图像
+    changeImg(num) {
+        this.bg.getComponent(cc.Sprite).spriteFrame = this.bgAtlas.getSpriteFrame(num)
+            // this.myBody.getComponent(cc.Sprite).spriteFrame = this.bodyAtalas.getSpriteFrame(num)
+            // cc.log("ohohoh")
+    },
 
     //初始化背包资源
     initBag() {
@@ -395,23 +453,29 @@ cc.Class({
 
     //渲染好友资源
     initFriend() {
-        let y = 0
-        let name
-        for (let i = 0; i < 3; i++) {
+        let y = 180
+        for (let i = 0; i < playerInfo.friend.length; i++) {
             const query = Bmob.Query('player')
+            cc.log(playerInfo.friend[i])
             query.get(playerInfo.friend[i]).then(res => {
-                name = res.name
+                let name = res.name
                 let friend = cc.instantiate(this.friend)
                 this.realfriendPanel.addChild(friend)
                 friend.getComponent(cc.Label).string = name
                 friend.setPosition(cc.v2(-50, y))
-                y += 90
+                y -= 90
                 friend.name = name
+                cc.log(name)
             }).catch(err => {
                 console.log(err)
             })
         }
         cc.log("好友资源保存成功")
+    },
+
+    destroyFriend() {
+        this.realfriendPanel.removeAllChildren();
+        cc.log("remove success")
     },
 
     //gold value count
@@ -458,11 +522,5 @@ cc.Class({
 
     },
 
-    update(dt) {
-        // if (this.isBuy === 1) {
-        //     cc.log("在这里")
-        //     cc.log(this.isBuy)
-        //     this.timer += dt
-        // }
-    },
+    update(dt) {},
 });
