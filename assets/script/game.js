@@ -153,8 +153,11 @@ cc.Class({
         if (comm === "open") {
             this.goodPanel.active = true
         } else if (comm === "cross") {
+            cc.log(this.isChose)
             this.goodPanel.active = false
             if (this.eatFlag && this.isChose) {
+                cc.log(this.eatFlag)
+                cc.log(this.isChose)
                 this.pet.getComponent(cc.Animation).play('animEat')
                 this.physicalValueAdd()
                 this.cleanValueSub()
@@ -227,28 +230,29 @@ cc.Class({
         if (infm === "eat") {
             this.eatFlag = 1
             this.isEat = 1 //判断是否销毁eatfood
-
             this.goodPanel.active = true
-            cc.log("activeInHierarchy: " + this.goodPanel.activeInHierarchy);
         } else if (infm === "shower") {
             anim.play('animWash')
             this.cleanValueAdd()
             this.physicalValueSub()
+            this.button.active = false
         } else if (infm === "study") {
             anim.play('animStudy')
             this.moodvalueAdd()
             this.physicalValueSub()
             this.cleanValueSub()
+            this.button.active = false
         } else if (infm === "work") {
             anim.play('animWorking')
             this.goldAdd()
             this.physicalValueSub()
             this.moodvalueAdd()
             this.cleanValueSub()
+            this.button.active = false
         }
 
         //允许单个动作进行
-        this.button.active = false
+        // this.button.active = false
         anim.on('finished', (msg) => {
             this.button.active = true;
 

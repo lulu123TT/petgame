@@ -47,14 +47,16 @@ cc.Class({
     //回调函数
     onRoleListBtnClick(event) {
         let friendName = this.node.parent.name
-
-        //获取父母节点   getid 渲染
+        cc.log("name1")
+            //获取父母节点   getid 渲染
         const query = Bmob.Query('player')
-        for (let i = 0; i < playerInfo.friendsNum; i++) {
+        for (let i = 0; i < playerInfo.friend.length; i++) {
+            cc.log("name2")
             query.get(playerInfo.friend[i]).then(res => {
                 let name = res.name
                 if (name === friendName) {
-                    //更改playerInfo的对应的值
+                    cc.log("name3")
+                        //更改playerInfo的对应的值
                     friendInfo.id = res.objectId
                     friendInfo.name = res.name
                     friendInfo.gold = res.gold
